@@ -56,6 +56,14 @@ output.epub
 
 ## Steps
 
+### Step 0 — Pre-flight dependency check
+
+```bash
+python3 skills/pdf-to-epub/scripts/check_deps.py
+```
+
+Verifies PaddleOCR packages, pandoc/poppler/imagemagick CLIs, and disk headroom for the model cache. If anything is missing it prints exact install commands and exits non-zero — relay the output to the user and stop until they install.
+
 ### Step 1 — Set up work directory
 
 Use a fresh directory per book so intermediate artifacts don't collide:
@@ -180,6 +188,7 @@ On Apple Silicon, CPU inference is the only option (no MPS support for PaddleOCR
 
 ## Files bundled with this skill
 
+- `scripts/check_deps.py` — pre-flight check for pip packages and CLI tools
 - `scripts/ocr_structure.py` — PP-StructureV3 OCR, resumable
 - `scripts/ocr_mobile_tail.py` — mobile-model OCR for pages the server couldn't finish
 - `scripts/rebuild_md_from_json.py` — regenerate MD fragments from saved JSONs (after a crash)
