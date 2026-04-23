@@ -1,89 +1,71 @@
-# PDF to EPUB (Chinese scanned book)
+# pdf-to-epub
 
-Pipeline for converting DuXiu-scanned Chinese PDFs to clean EPUBs with OCR, native footnotes, and image plates.
+Convert scanned Chinese (or other-language) PDFs into clean EPUBs with OCR, native EPUB footnotes, chapter navigation, and embedded image plates. Built on PaddleOCR PP-StructureV3 + pandoc.
 
-Developed against: `希尔伯特 — 数学世界的亚历山大` (Constance Reid, 上海科学技术出版社 2006).
+Ships as a Claude Code plugin — installable into Claude Code and invoked via `/pdf-to-epub <pdf_path>` or natural language ("convert this PDF to EPUB").
 
-## Pipeline
+## Why
+
+Scanned Chinese PDFs from services like DuXiu / Anna's Archive have recurring structural problems that pure-OCR pipelines don't solve:
+
+- Vertical side-margin text (running book/chapter titles) appears as isolated CJK characters inside paragraphs.
+- Page headers/footers look identical to chapter markers (every page of chapter 1 has "第一章").
+- Footnote markers (`*`) survive OCR but don't link to their body text at the page bottom.
+- Paragraphs split at page boundaries become separate "paragraphs" unless explicitly rejoined.
+- Publisher metadata is crammed into one giant paragraph with no breaks.
+
+The deterministic scripts handle OCR and pandoc. The skill's SKILL.md tells Claude how to read the OCR output and produce a `book_config.json` that encodes the structural judgments (chapter titles, running headers, front-matter sections) for *this specific book*.
+
+## Structure
 
 ```
-PDF (scanned)
-  │
-  ▼  pdftoppm -r 200 → PNG per page
-pages/*.png
-  │
-  ▼  ocr_structure.py (PP-StructureV3, server models)
-  │    – layout analysis separates body/header/footer/footnote/image
-  │    – per-page JSON + MD fragment
-structure_json/page-NNN.json
-md_parts/page-NNN.md
-  │
-  ▼  ocr_mobile_tail.py (mobile fallback for any missing pages)
-  │    – server OCR tends to slow down on long runs (RAM leak),
-  │      mobile is a fast fallback for the tail
-  │
-  ▼  assemble.py → hilbert.md (one big markdown)
-  │
-  ▼  make_epub.sh
-  │    – drop vertical side-margin text, page numbers, headers
-  │    – detect real chapter boundaries (use TOC title map to avoid
-  │      garbled page-header "第N章" matches)
-  │    – convert footnote bodies to native [^n] pandoc footnotes
-  │    – anchor markers at inline `*` in OCR text
-  │    – promote front-matter sections (出版说明, 内容简介, etc.)
-  │    – embed photo-plate pages as JPEGs
-  │
-  ▼  pandoc --split-level=2 → final .epub
+pdf-to-epub/
+├── .claude-plugin/plugin.json    Claude Code plugin manifest
+├── skills/pdf-to-epub/
+│   ├── SKILL.md                  Invocation instructions for Claude
+│   ├── references/
+│   │   └── book-config-schema.md  Schema for book_config.json
+│   └── scripts/
+│       ├── ocr_structure.py      PP-StructureV3 (server models), resumable
+│       ├── ocr_mobile_tail.py    Mobile-model fallback for tail pages
+│       ├── rebuild_md_from_json.py
+│       ├── assemble.py
+│       ├── build_epub.py         Config-driven cleanup + pandoc
+│       ├── audit.py, deep_audit.py   Post-build QA
+│       └── benchmark.py
+└── sample/
+    ├── sample-hilbert.pdf        15 MB, DuXiu scan
+    ├── sample-hilbert.epub       2.4 MB, pipeline output
+    └── hilbert-book-config.json  Worked example of every schema field
 ```
 
-## Scripts
-
-| File | Purpose |
-|------|---------|
-| `ocr_structure.py` | PP-StructureV3 OCR with resume support |
-| `ocr_mobile_tail.py` | Fast mobile OCR for pages server couldn't finish |
-| `ocr_pages.py` | Original simple mobile-only OCR (superseded) |
-| `rebuild_md_from_json.py` | Regenerate MD fragments from saved PP-StructureV3 JSONs |
-| `assemble.py` | Concatenate per-page MD fragments into a single `hilbert.md` |
-| `make_epub.sh` | Clean up the combined MD and invoke pandoc |
-| `benchmark.py` | Benchmark OCR configs (server vs mobile, unwarp on/off) |
-| `audit.py` | Summary audit of the final EPUB (chapter count, footnote count, images) |
-| `deep_audit.py` | Detailed OCR-error scan (OCR confusions, broken paragraphs, stray `$`) |
-
-## Known limitations
-
-- Server PP-StructureV3 has a memory leak that degrades speed after ~250 pages; resume from saved JSONs.
-- OCR embeds stray `$...$` and `{}` where the source PDF had math typography — these come through as literal text.
-- `*` footnote markers in OCR output only survive when they were typographically distinct in the scan; cases where the marker was lost fall back to appending at paragraph end.
-
-## Usage
-
-All scripts read `$WORK_DIR` (default `/tmp/book-convert`) and `$OUTPUT_EPUB` (default `$WORK_DIR/book.epub`).
+## Quick run (without Claude)
 
 ```bash
 export WORK_DIR=/tmp/my-book
 export OUTPUT_EPUB=~/Downloads/my-book.epub
+export BOOK_CONFIG=$WORK_DIR/book_config.json
 
-# 1. Render PDF pages to 200dpi PNGs
 mkdir -p "$WORK_DIR/pages"
 pdftoppm -r 200 -png sample/sample-hilbert.pdf "$WORK_DIR/pages/page"
 
-# 2. Primary OCR (resumable — kill and restart if it hangs)
-python3 ocr_structure.py
-
-# 3. Fill any pages the server OCR skipped
-python3 ocr_mobile_tail.py
-
-# 4. Assemble per-page fragments, clean, package as EPUB
+cd skills/pdf-to-epub/scripts
+python3 ocr_structure.py     # ~90 min for 300 pages, resumable
 python3 assemble.py
-bash make_epub.sh
+
+# Hand-author or copy from sample/hilbert-book-config.json
+cp ../../../sample/hilbert-book-config.json "$BOOK_CONFIG"
+
+python3 build_epub.py
 ```
 
-Note: `make_epub.sh` still contains book-specific cleanup rules (hardcoded chapter titles for this Hilbert biography, front-matter heading patterns, OCR-artifact filters). Adapt it for your own book.
+## With Claude
 
-## Sample
+```
+/pdf-to-epub sample/sample-hilbert.pdf
+```
 
-`sample/sample-hilbert.pdf` (15 MB, DuXiu scan) → `sample/sample-hilbert.epub` (2.4 MB, pipeline output).
+Claude runs OCR, reads the assembled markdown, infers the book's structure (TOC, chapters, running headers, image-plate range, front-matter sections), writes a per-book `book_config.json`, builds the EPUB, runs audits, and iterates if the user spots issues.
 
 ## Dependencies
 
@@ -91,3 +73,15 @@ Note: `make_epub.sh` still contains book-specific cleanup rules (hardcoded chapt
 pip install 'paddlepaddle' 'paddleocr' 'paddlex[ocr]'
 brew install pandoc poppler imagemagick
 ```
+
+First OCR run downloads ~1.3 GB of models to `~/.paddlex/official_models/`.
+
+## Known limitations
+
+- `PPStructureV3` has a memory leak that degrades speed after ~250 pages. The pipeline detects this and falls back to mobile OCR for the remainder.
+- Math typography in the source PDF often survives as stray `$...$` or `{}` tokens in the OCR — these render as literal text, not rendered math.
+- Footnote markers only anchor precisely if OCR preserved the inline `*`. When lost, they fall back to end-of-paragraph attachment, which is close but occasionally a word off.
+
+## License
+
+MIT. Sample PDF is a DuXiu scan of a public-domain-era work; redistribute at your discretion.
