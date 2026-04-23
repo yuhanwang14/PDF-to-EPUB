@@ -1,0 +1,18 @@
+# Transient OCR artifacts (regenerable, large)
+pages/
+structure_json/
+md_parts/
+images/
+epub-extract/
+hilbert.md
+hilbert_clean.md
+hilbert_structure.md
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# macOS
+.DS_Store
