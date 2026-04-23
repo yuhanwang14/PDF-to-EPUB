@@ -1,0 +1,19 @@
+{
+  "name": "PDF-to-EPUB",
+  "owner": {
+    "name": "Yuhan Wang",
+    "email": "yuhanwang14@github.com"
+  },
+  "metadata": {
+    "description": "Convert scanned PDFs (optimized for Chinese) into clean EPUBs with OCR, native footnotes, chapter navigation, and embedded image plates.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "PDF-to-EPUB",
+      "source": "./",
+      "description": "PaddleOCR PP-StructureV3 layout-aware OCR + pandoc pipeline. Invoke with /PDF-to-EPUB <pdf_path>.",
+      "version": "1.0.0"
+    }
+  ]
+}
