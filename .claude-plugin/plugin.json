@@ -1,5 +1,5 @@
 {
-  "name": "PDF-to-EPub",
+  "name": "PDF-to-EPUB",
   "version": "1.0.0",
   "description": "Convert scanned Chinese (or any language) PDFs into clean EPUBs with OCR, native footnotes, and image plates. Built on PaddleOCR PP-StructureV3 + pandoc.",
   "author": {
@@ -7,8 +7,8 @@
     "email": "yuhanwangwork14@gmail.com",
     "url": "https://github.com/yuhanwang14"
   },
-  "homepage": "https://github.com/yuhanwang14/PDF-to-EPub",
-  "repository": "https://github.com/yuhanwang14/PDF-to-EPub",
+  "homepage": "https://github.com/yuhanwang14/PDF-to-EPUB",
+  "repository": "https://github.com/yuhanwang14/PDF-to-EPUB",
   "license": "MIT",
   "keywords": ["pdf", "epub", "ocr", "chinese", "paddleocr", "pandoc", "duxiu"]
 }

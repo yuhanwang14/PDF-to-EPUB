@@ -1,6 +1,6 @@
 ---
-name: PDF-to-EPub
-description: "Convert a scanned PDF (Chinese or English, primarily optimized for Chinese) into a clean EPUB with native footnotes, chapter navigation, and embedded image plates. TRIGGER when the user wants to convert a scanned PDF / DuXiu scan / 扫描版书籍 into EPUB, or mentions a PDF of a book (particularly Chinese) that isn't searchable. Signal phrases: 'convert this PDF to EPUB', '把这个PDF转成EPUB', 'turn this book into an EPUB', 'OCR this book', 'make this scanned book readable on my Kindle/iPad'. Also triggers for `/PDF-to-EPub <path>`. Runs PaddleOCR PP-StructureV3 layout analysis + text recognition, infers book structure (chapters, footnotes, front-matter) from the OCR output, and packages with pandoc. NOT for: converting digital (text-layer) PDFs — those should use `pandoc` directly or `markitdown` + `pandoc`; extracting a single page or figure; generating a PDF from EPUB (reverse direction)."
+name: PDF-to-EPUB
+description: "Convert a scanned PDF (Chinese or English, primarily optimized for Chinese) into a clean EPUB with native footnotes, chapter navigation, and embedded image plates. TRIGGER when the user wants to convert a scanned PDF / DuXiu scan / 扫描版书籍 into EPUB, or mentions a PDF of a book (particularly Chinese) that isn't searchable. Signal phrases: 'convert this PDF to EPUB', '把这个PDF转成EPUB', 'turn this book into an EPUB', 'OCR this book', 'make this scanned book readable on my Kindle/iPad'. Also triggers for `/PDF-to-EPUB <path>`. Runs PaddleOCR PP-StructureV3 layout analysis + text recognition, infers book structure (chapters, footnotes, front-matter) from the OCR output, and packages with pandoc. NOT for: converting digital (text-layer) PDFs — those should use `pandoc` directly or `markitdown` + `pandoc`; extracting a single page or figure; generating a PDF from EPUB (reverse direction)."
 version: 1.0.0
 author: Yuhan Wang
 license: MIT
@@ -11,7 +11,7 @@ Convert a scanned-image PDF into a clean EPUB: OCR with layout analysis, structu
 
 ## Arguments
 
-`/PDF-to-EPub <pdf_path> [output_epub_path]`
+`/PDF-to-EPUB <pdf_path> [output_epub_path]`
 
 - `pdf_path` — required. Path to the scanned PDF.
 - `output_epub_path` — optional. Defaults to the PDF path with `.epub` extension in `~/Downloads/`.
@@ -59,7 +59,7 @@ output.epub
 ### Step 0 — Pre-flight dependency check
 
 ```bash
-python3 skills/PDF-to-EPub/scripts/check_deps.py
+python3 skills/PDF-to-EPUB/scripts/check_deps.py
 ```
 
 Verifies PaddleOCR packages, pandoc/poppler/imagemagick CLIs, and disk headroom for the model cache. If anything is missing it prints exact install commands and exits non-zero — relay the output to the user and stop until they install.
@@ -88,7 +88,7 @@ Check page count: `ls "$WORK_DIR/pages" | wc -l`. Expected: the PDF's total page
 **Run the server-model OCR in the background**, monitor progress, and caffeinate the Mac so it doesn't sleep:
 
 ```bash
-cd skills/PDF-to-EPub/scripts
+cd skills/PDF-to-EPUB/scripts
 python3 ocr_structure.py &
 OCR_PID=$!
 caffeinate -s -w $OCR_PID &

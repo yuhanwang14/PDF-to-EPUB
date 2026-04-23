@@ -1,8 +1,8 @@
-# PDF-to-EPub
+# PDF-to-EPUB
 
 Convert scanned Chinese (or other-language) PDFs into clean EPUBs with OCR, native EPUB footnotes, chapter navigation, and embedded image plates. Built on PaddleOCR PP-StructureV3 + pandoc.
 
-Ships as a Claude Code plugin — installable into Claude Code and invoked via `/PDF-to-EPub <pdf_path>` or natural language ("convert this PDF to EPUB").
+Ships as a Claude Code plugin — installable into Claude Code and invoked via `/PDF-to-EPUB <pdf_path>` or natural language ("convert this PDF to EPUB").
 
 ## Why
 
@@ -19,9 +19,9 @@ The deterministic scripts handle OCR and pandoc. The skill's SKILL.md tells Clau
 ## Structure
 
 ```
-PDF-to-EPub/
+PDF-to-EPUB/
 ├── .claude-plugin/plugin.json    Claude Code plugin manifest
-├── skills/PDF-to-EPub/
+├── skills/PDF-to-EPUB/
 │   ├── SKILL.md                  Invocation instructions for Claude
 │   ├── references/
 │   │   └── book-config-schema.md  Schema for book_config.json
@@ -49,7 +49,7 @@ export BOOK_CONFIG=$WORK_DIR/book_config.json
 mkdir -p "$WORK_DIR/pages"
 pdftoppm -r 200 -png sample/sample-hilbert.pdf "$WORK_DIR/pages/page"
 
-cd skills/PDF-to-EPub/scripts
+cd skills/PDF-to-EPUB/scripts
 python3 ocr_structure.py     # ~90 min for 300 pages, resumable
 python3 assemble.py
 
@@ -62,7 +62,7 @@ python3 build_epub.py
 ## With Claude
 
 ```
-/PDF-to-EPub sample/sample-hilbert.pdf
+/PDF-to-EPUB sample/sample-hilbert.pdf
 ```
 
 Claude runs OCR, reads the assembled markdown, infers the book's structure (TOC, chapters, running headers, image-plate range, front-matter sections), writes a per-book `book_config.json`, builds the EPUB, runs audits, and iterates if the user spots issues.
