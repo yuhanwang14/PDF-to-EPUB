@@ -4,6 +4,18 @@ Convert scanned Chinese (or other-language) PDFs into clean EPUBs with OCR, nati
 
 Ships as a Claude Code plugin — installable into Claude Code and invoked via `/PDF-to-EPUB <pdf_path>` or natural language ("convert this PDF to EPUB").
 
+## Install
+
+In Claude Code:
+
+```
+# Add the marketplace and install (auto-updates enabled)
+/plugin marketplace add https://github.com/yuhanwang14/PDF-to-EPUB
+/plugin install PDF-to-EPUB
+```
+
+Then install the system dependencies (see [Dependencies](#dependencies) below), and invoke with `/PDF-to-EPUB <pdf_path>`.
+
 ## Why
 
 Scanned Chinese PDFs from services like DuXiu / Anna's Archive have recurring structural problems that pure-OCR pipelines don't solve:
